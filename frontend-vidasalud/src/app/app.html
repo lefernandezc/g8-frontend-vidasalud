@@ -1,2 +1,21 @@
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a [routerLink]="['login']">Login</a></li>
+        <li><a [routerLink]="['atenciones']">Atenciones</a></li>
+        <li><a [routerLink]="['dashboard']">Dashboard</a></li>
+        <li><a [routerLink]="['reporteria']">Reporteria</a></li>
+        <li><a [routerLink]="['auditoria']">Auditoria</a></li>
+        <li><a [routerLink]="['catalogo-prestaciones']">Catalogo de Prestacione</a></li>
+      </ul>
+    </nav>
+  </header>
 
-<router-outlet />
+  <main>
+    <router-outlet />
+  </main>
+
+</body>
+
+
