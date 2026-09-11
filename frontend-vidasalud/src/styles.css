@@ -1,4 +1,4 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'tailwindcss';
 
 :root {
   --color-fondo: #c9d7f7;     
@@ -26,6 +26,7 @@ body {
   color: var(--color-texto);
   font-family: Arial, sans-serif;
   line-height: 1.6;
+  margin: 0;
 }
 
 header {
@@ -52,4 +53,9 @@ nav a:hover {
   color: var(--color-primario);
 }
 
-@import 'tailwindcss';
+footer {
+  background-color: var(--color-superficie);
+  text-align: center;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
