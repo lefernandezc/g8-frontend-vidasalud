@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # -----------------------------------------------------------------
+  # 1. FRONTEND ANGULAR
+  # -----------------------------------------------------------------
+  frontend-vidasalud:
+    build:
+      context: ./frontend-vidasalud
+      dockerfile: Dockerfile
+    container_name: g8_frontend_vidasalud
+    ports:
+      - "4200:80"
+    networks:
+      - vidasalud-net
+    restart: always
+
+  # -----------------------------------------------------------------
+  # 2. INFRAESTRUCTURA (RabbitMQ y PostgreSQL)
+  # -----------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-vidasalud
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vidasalud-net
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres-vidasalud
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: vidasalud_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vidasalud-net
+
+  # -----------------------------------------------------------------
+  # 3. MICROSERVICIO AUDITORÍA
+  # -----------------------------------------------------------------
+  ms-audit:
+    build:
+      context: ../g8-ms-vidasalud-audit-main/ms-vidasalud-audit
+      dockerfile: Dockerfile
+    container_name: ms_audit
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/vidasalud_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgrespassword
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - vidasalud-net
+
+  # -----------------------------------------------------------------
+  # 4. MICROSERVICIO REPORTES
+  # -----------------------------------------------------------------
+  ms-report:
+    build:
+      context: ../ms_vidasalud_report
+      dockerfile: Dockerfile
+    container_name: ms_report
+    ports:
+      - "8084:8084"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/vidasalud_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgrespassword
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - vidasalud-net
+
+volumes:
+  postgres_data:
+
+networks:
+  vidasalud-net:
+    driver: bridge
