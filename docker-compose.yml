@@ -1,23 +1,29 @@
-version: '3.8'
-
-services:
-  # -----------------------------------------------------------------
-  # 1. FRONTEND ANGULAR
-  # -----------------------------------------------------------------
-  frontend-vidasalud:
-    build:
-      context: ./frontend-vidasalud
-      dockerfile: Dockerfile
-    container_name: g8_frontend_vidasalud
+﻿services:
+  # =================================================================
+  # 1. BASE DE DATOS ÚNICA (ORACLE 21c XE)
+  # =================================================================
+  oracle-db:
+    image: gvenzl/oracle-xe:21-slim-faststart
+    container_name: oracle-vidasalud
     ports:
-      - "4200:80"
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: oracle
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     networks:
       - vidasalud-net
-    restart: always
+    restart: unless-stopped
 
-  # -----------------------------------------------------------------
-  # 2. INFRAESTRUCTURA (RabbitMQ y PostgreSQL)
-  # -----------------------------------------------------------------
+  # =================================================================
+  # 2. MENSAJERÍA RABBITMQ (COLAS + DLQ)
+  # =================================================================
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq-vidasalud
@@ -34,80 +40,234 @@ services:
       retries: 5
     networks:
       - vidasalud-net
+    restart: unless-stopped
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres-vidasalud
+  # =================================================================
+  # 3. STREAMING APACHE KAFKA (ZOOKEEPER + BROKER + KAFKA-UI)
+  # =================================================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: zookeeper-vidasalud
     ports:
-      - "5432:5432"
+      - "2181:2181"
     environment:
-      POSTGRES_DB: vidasalud_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgrespassword
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_HEAP_OPTS: "-Xmx256m -Xms128m"
     networks:
       - vidasalud-net
+    restart: unless-stopped
 
-  # -----------------------------------------------------------------
-  # 3. MICROSERVICIO AUDITORÍA
-  # -----------------------------------------------------------------
-  ms-audit:
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: kafka-vidasalud
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_HEAP_OPTS: "-Xmx512m -Xms256m"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+    networks:
+      - vidasalud-net
+    restart: unless-stopped
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui-vidasalud
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: vidasalud-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - vidasalud-net
+    restart: unless-stopped
+
+  # =================================================================
+  # 4. MICROSERVICIOS BACKEND (SPRING BOOT + JAVA 21)
+  # =================================================================
+  ms_appointments:
     build:
-      context: ../g8-ms-vidasalud-audit-main/ms-vidasalud-audit
+      context: ../g8-ms-vidasalud-appointments/appointments
+      dockerfile: Dockerfile
+    container_name: ms_appointments
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: oracle-db
+      DB_USER: system
+      DB_PASS: oracle
+      RABBIT_HOST: rabbitmq
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - vidasalud-net
+    restart: unless-stopped
+
+  ms_audit:
+    build:
+      context: ../g8-ms-vidasalud-audit/ms-vidasalud-audit
       dockerfile: Dockerfile
     container_name: ms_audit
     ports:
-      - "8083:8083"
+      - "8081:8081"
     environment:
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/vidasalud_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgrespassword
+      DB_HOST: oracle-db
+      DB_USER: system
+      DB_PASS: oracle
+      RABBIT_HOST: rabbitmq
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     depends_on:
+      oracle-db:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      postgres:
+      kafka:
         condition: service_healthy
     networks:
       - vidasalud-net
+    restart: unless-stopped
 
-  # -----------------------------------------------------------------
-  # 4. MICROSERVICIO REPORTES
-  # -----------------------------------------------------------------
-  ms-report:
+  ms_catalog:
     build:
-      context: ../ms_vidasalud_report
+      context: ../g8-ms-vidasalud-catalog/catalogo
+      dockerfile: Dockerfile
+    container_name: ms_catalog
+    ports:
+      - "8082:8082"
+    environment:
+      DB_HOST: oracle-db
+      DB_USER: system
+      DB_PASS: oracle
+      RABBIT_HOST: rabbitmq
+    depends_on:
+      oracle-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - vidasalud-net
+    restart: unless-stopped
+
+  ms_notify:
+    build:
+      context: ../g8-ms-vidasalud-notify
+      dockerfile: Dockerfile
+    container_name: ms_notify
+    ports:
+      - "8083:8083"
+    environment:
+      RABBIT_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - vidasalud-net
+    restart: unless-stopped
+
+  ms_report:
+    build:
+      context: ../g8-ms-VidaSalud-Report
       dockerfile: Dockerfile
     container_name: ms_report
     ports:
       - "8084:8084"
     environment:
-      - SPRING_RABBITMQ_HOST=rabbitmq
-      - SPRING_RABBITMQ_PORT=5672
-      - SPRING_RABBITMQ_USERNAME=guest
-      - SPRING_RABBITMQ_PASSWORD=guest
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/vidasalud_db
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgrespassword
+      DB_HOST: oracle-db
+      DB_USER: system
+      DB_PASS: oracle
+      RABBIT_HOST: rabbitmq
     depends_on:
-      rabbitmq:
+      oracle-db:
         condition: service_healthy
-      postgres:
+      rabbitmq:
         condition: service_healthy
     networks:
       - vidasalud-net
+    restart: unless-stopped
+
+  ms_rabbitmq_admin:
+    build:
+      context: ../g8-ms-vidasalud-rabbitmq-admin
+      dockerfile: Dockerfile
+    container_name: ms_rabbitmq_admin
+    ports:
+      - "8085:8085"
+    environment:
+      RABBIT_HOST: rabbitmq
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - vidasalud-net
+    restart: unless-stopped
+
+  ms_kafka_admin:
+    build:
+      context: ../g8-ms-vidasalud-kafka-admin
+      dockerfile: Dockerfile
+    container_name: ms_kafka_admin
+    ports:
+      - "8086:8086"
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - vidasalud-net
+    restart: unless-stopped
+
+  # =================================================================
+  # 5. FRONTEND ANGULAR + NGINX REVERSE PROXY
+  # =================================================================
+  frontend:
+    build:
+      context: ../frontend-vidasalud
+      dockerfile: Dockerfile
+    container_name: g8_frontend_vidasalud
+    ports:
+      - "80:80"
+      - "4200:80"
+    depends_on:
+      - ms_appointments
+      - ms_audit
+      - ms_catalog
+      - ms_notify
+      - ms_report
+      - ms_rabbitmq_admin
+      - ms_kafka_admin
+    networks:
+      - vidasalud-net
+    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  oracle_data:
 
 networks:
   vidasalud-net:
