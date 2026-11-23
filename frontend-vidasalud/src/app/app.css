@@ -1,9 +1,262 @@
-:host {
+.navbar {
   display: flex;
-  flex-direction: column;
-  min-height: 100vh;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2563eb;
+  background-image:
+    linear-gradient(rgba(29, 78, 216, 0.60), rgba(37, 99, 235, 0.66)),
+    url('/patronbarrasdeuividasalud.jpg');
+  background-repeat: repeat;
+  background-size: 250px auto;
+  background-position: center;
+  padding: 10px 24px;
+  min-height: 58px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(15, 41, 74, 0.18);
 }
 
-main {
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.nav-links a {
+  text-decoration: none;
+  background-color: #0f294a;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 15px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 2px 5px rgba(15, 41, 74, 0.25);
+  transition: background-color 0.2s, transform 0.15s;
+}
+
+.nav-links a:hover {
+  background-color: #1e3a8a;
+}
+
+.nav-links a.activo {
+  background-color: #ffffff;
+  color: #0f294a;
+  border-color: #ffffff;
+  font-weight: 700;
+}
+
+.usuario-contenedor {
+  position: relative;
+}
+
+.usuario-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #0f294a;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  padding: 4px 14px 4px 6px;
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(15, 41, 74, 0.25);
+}
+
+.usuario-pill:hover {
+  background-color: #1e3a8a;
+}
+
+.avatar-circulo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #2563eb;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.3px;
+}
+
+.dropdown-usuario {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: 265px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.16);
+  padding: 16px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dropdown-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdown-header strong {
+  font-size: 15px;
+  color: #111827;
+}
+
+.dropdown-header span {
+  font-size: 12px;
+  color: #6b7280;
+  word-break: break-all;
+}
+
+.divisor {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 0;
+}
+
+.fila-rol {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.badge-rol {
+  background-color: #e0edff;
+  color: #1d4ed8;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.btn-cambiar-rol {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #bfdbfe;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-cambiar-rol:hover {
+  background-color: #dbeafe;
+}
+
+.panel-cambio-rol {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.panel-cambio-rol label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.input-rol {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.error-clave {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.acciones-cambio-rol {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.btn-confirmar-rol {
   flex: 1;
+  padding: 6px;
+  border: none;
+  border-radius: 6px;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-cancelar-rol {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #4b5563;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.btn-cerrar-sesion {
+  width: 100%;
+  padding: 9px;
+  border: none;
+  border-radius: 8px;
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-cerrar-sesion:hover {
+  background-color: #fecaca;
+}
+
+.contenido-principal {
+  min-height: calc(100vh - 108px);
+}
+
+.footer {
+  background-color: #2563eb;
+  background-image:
+    linear-gradient(rgba(29, 78, 216, 0.60), rgba(37, 99, 235, 0.66)),
+    url('/patronbarrasdeuividasalud.jpg');
+  background-repeat: repeat;
+  background-size: 250px auto;
+  background-position: center;
+  text-align: center;
+  padding: 12px 16px;
+  box-shadow: 0 -2px 8px rgba(15, 41, 74, 0.14);
+}
+
+.footer-badge {
+  display: inline-block;
+  background-color: #0f294a;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 2px 5px rgba(15, 41, 74, 0.22);
 }

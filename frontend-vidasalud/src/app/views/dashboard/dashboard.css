@@ -1,0 +1,256 @@
+.dashboard-contenedor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  padding: 24px 32px;
+  align-items: center;
+  min-height: calc(100vh - 110px);
+  max-width: 1400px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.columna-izquierda {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cabecera-bienvenida h2 {
+  margin: 6px 0 4px;
+  font-size: 24px;
+  color: #0f294a;
+}
+
+.etiqueta-rol {
+  display: inline-block;
+  background-color: #0f294a;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.4px;
+}
+
+.texto-guia {
+  margin: 0;
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+.resumen-kpi-fila {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.kpi-mini {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 3px 10px rgba(15, 41, 74, 0.07);
+  border-left: 4px solid #f59e0b;
+  display: flex;
+  flex-direction: column;
+}
+
+.kpi-mini.kpi-azul {
+  border-left-color: #2563eb;
+}
+
+.kpi-mini.kpi-verde {
+  border-left-color: #10b981;
+}
+
+.kpi-numero {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f294a;
+}
+
+.kpi-etiqueta {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.tarjeta-citas {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(15, 41, 74, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tarjeta-citas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tarjeta-citas-header h3,
+.tarjeta-citas h3 {
+  margin: 0;
+  font-size: 17px;
+  color: #0f294a;
+}
+
+.contador-pill {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.lista-citas-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.item-cita {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.item-cita-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.codigo-cita {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  background-color: #dbeafe;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+.item-cita-detalle {
+  font-size: 12px;
+  color: #475569;
+  margin-top: 3px;
+}
+
+.item-cita-fecha {
+  font-size: 12px;
+  color: #0f294a;
+  font-weight: 600;
+  margin-top: 3px;
+}
+
+.badge-estado {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.badge-estado[data-estado='SOLICITADA'] {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.badge-estado[data-estado='CONFIRMADA'] {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge-estado[data-estado='EN_ESPERA'] {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.badge-estado[data-estado='EN_ATENCIÓN'] {
+  background-color: #d1fae5;
+  color: #047857;
+}
+
+.sin-citas {
+  padding: 20px;
+  text-align: center;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.acciones-dashboard {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btn-solicitar-ahora {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.btn-solicitar-ahora:hover {
+  background-color: #1d4ed8;
+}
+
+.btn-ver-historial {
+  text-align: center;
+  text-decoration: none;
+  background-color: #f1f5f9;
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+}
+
+.btn-ver-historial:hover {
+  background-color: #e2e8f0;
+}
+
+.columna-derecha {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.imagen-sala {
+  width: 100%;
+  max-height: 75vh;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 900px) {
+  .dashboard-contenedor {
+    grid-template-columns: 1fr;
+  }
+}

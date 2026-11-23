@@ -1,3 +1,125 @@
-<p>auditoria works!</p>
-<p><br>Trazabilidad de la atención.
-   <br>Filtros: usuario, fechas, tipo de evento.</p>
+<div class="auditoria-wrapper">
+  <div class="encabezado-modulo">
+    <div>
+      <div class="titulo-con-candado">
+        <h1>Auditoría y Trazabilidad del Sistema</h1>
+        <span class="badge-solo-lectura">Solo Lectura · Registro Inmutable</span>
+      </div>
+      <p class="subtitulo">
+        Historial cronológico de solicitudes, cambios de estado, reservas de box y eventos despachados en la red VidaSalud.
+      </p>
+    </div>
+
+    <div class="controles-header">
+      <button type="button" class="btn-exportar" (click)="exportarAuditoriaCSV()">
+        Exportar Log CSV
+      </button>
+      <span class="chip-rol-activo">Vista: {{ rolActual }}</span>
+    </div>
+  </div>
+
+  @if (mensajeExportacion) {
+    <div class="alerta-exito">{{ mensajeExportacion }}</div>
+  }
+
+  <!-- Métricas rápidas de trazabilidad -->
+  <div class="grid-metricas-auditoria">
+    <div class="metrica-card">
+      <span class="metrica-label">Eventos Registrados</span>
+      <span class="metrica-valor">{{ totalEventos }}</span>
+    </div>
+    <div class="metrica-card">
+      <span class="metrica-label">Atenciones Trazadas</span>
+      <span class="metrica-valor">{{ atencionesAuditadas }}</span>
+    </div>
+    <div class="metrica-card">
+      <span class="metrica-label">Usuarios / Actores</span>
+      <span class="metrica-valor">{{ actoresDistintos }}</span>
+    </div>
+  </div>
+
+  <!-- Barra de filtros -->
+  <section class="tarjeta-filtros">
+    <div class="campo-busqueda">
+      <label for="buscar-audit">Buscar por código, correo o detalle</label>
+      <input
+        id="buscar-audit"
+        type="text"
+        placeholder="Ej. ATN-1006, recepcionista@vidasalud.cl, q.cmd.email..."
+        [(ngModel)]="busquedaTexto"
+      />
+    </div>
+
+    <div class="campo-filtro">
+      <label for="filtro-rol">Rol ejecutor</label>
+      <select id="filtro-rol" [(ngModel)]="filtroRol">
+        <option value="TODOS">Todos los roles</option>
+        <option value="Paciente">Paciente</option>
+        <option value="Recepcionista">Recepcionista</option>
+        <option value="Admin">Admin</option>
+      </select>
+    </div>
+
+    <div class="campo-filtro">
+      <label for="filtro-estado-audit">Estado resultante</label>
+      <select id="filtro-estado-audit" [(ngModel)]="filtroEstado">
+        <option value="TODOS">Todos los estados</option>
+        <option value="SOLICITADA">SOLICITADA</option>
+        <option value="CONFIRMADA">CONFIRMADA</option>
+        <option value="EN_ESPERA">EN_ESPERA</option>
+        <option value="EN_ATENCIÓN">EN_ATENCIÓN</option>
+        <option value="CERRADA">CERRADA</option>
+        <option value="CANCELADA">CANCELADA</option>
+      </select>
+    </div>
+
+    <button type="button" class="btn-limpiar" (click)="limpiarFiltros()">
+      Limpiar filtros
+    </button>
+  </section>
+
+  <!-- Timeline cronológico -->
+  <section class="tarjeta-panel">
+    <div class="header-timeline">
+      <h2>Línea de Tiempo de Eventos</h2>
+      <span class="contador-resultados">
+        Mostrando {{ eventosFiltrados.length }} de {{ totalEventos }} eventos
+      </span>
+    </div>
+
+    @if (eventosFiltrados.length === 0) {
+      <div class="estado-vacio">
+        No se encontraron eventos de auditoría con los filtros aplicados.
+      </div>
+    } @else {
+      <div class="timeline-lista">
+        @for (ev of eventosFiltrados; track ev.id) {
+          <div class="timeline-item">
+            <div class="timeline-marcador" [attr.data-estado]="ev.estadoNuevo"></div>
+
+            <div class="timeline-contenido">
+              <div class="timeline-fila-superior">
+                <div class="timeline-badges">
+                  <span class="badge-audit-id">{{ ev.id }}</span>
+                  <span class="badge-atencion-id">{{ ev.atencionId }}</span>
+                  <span class="badge-estado" [attr.data-estado]="ev.estadoNuevo">
+                    {{ ev.estadoNuevo }}
+                  </span>
+                </div>
+                <span class="timeline-fecha">{{ ev.fechaHora }}</span>
+              </div>
+
+              <div class="timeline-accion">{{ ev.accion }}</div>
+              <div class="timeline-detalle">{{ ev.detalle }}</div>
+
+              <div class="timeline-actor">
+                Ejecutado por: <strong>{{ ev.usuario }}</strong>
+                <span class="chip-rol-actor">{{ ev.rol }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+</div>

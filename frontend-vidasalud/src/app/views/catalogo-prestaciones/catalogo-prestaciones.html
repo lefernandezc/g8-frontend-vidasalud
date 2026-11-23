@@ -1,2 +1,153 @@
-<p>catalogo-prestaciones works!</p>
-<p><br>Prestaciones, boxes y cupos</p>
+<div class="catalogo-wrapper">
+  <div class="encabezado-modulo">
+    <div>
+      <h1>Catálogo de Prestaciones y Boxes</h1>
+      <p class="subtitulo">
+        @if (rolActual === 'Recepcionista') {
+          Consulta disponibilidad de boxes, aranceles y cupos activos en tiempo real antes de confirmar citas.
+        } @else {
+          Administra el catálogo de servicios clínicos, asignación de boxes, precios y cupos disponibles.
+        }
+      </p>
+    </div>
+    <div class="badges-header">
+      <span class="chip-cupos">Cupos totales: {{ totalCuposRed }}</span>
+      <span class="chip-rol-activo">Vista: {{ rolActual }}</span>
+    </div>
+  </div>
+
+  @if (mensajeExito) {
+    <div class="alerta alerta-exito">{{ mensajeExito }}</div>
+  }
+  @if (mensajeError) {
+    <div class="alerta alerta-error">{{ mensajeError }}</div>
+  }
+
+  <div [class]="rolActual === 'Admin' ? 'grid-catalogo-admin' : 'grid-catalogo-solo'">
+    @if (rolActual === 'Admin') {
+      <section class="tarjeta-panel">
+        <h2>Nueva Prestación</h2>
+        <p class="descripcion-tarjeta">Registra un nuevo servicio médico o dental con su box y cupos diarios.</p>
+
+        <form (ngSubmit)="agregarPrestacion()" class="formulario-catalogo">
+          <div class="campo">
+            <label for="nombre-prest">Nombre de la prestación</label>
+            <input
+              id="nombre-prest"
+              name="nombre"
+              type="text"
+              placeholder="Ej. Radiografía Dental Panorámica"
+              [(ngModel)]="nuevoNombre"
+              required
+            />
+          </div>
+
+          <div class="campo">
+            <label for="esp-prest">Especialidad</label>
+            <select id="esp-prest" name="especialidad" [(ngModel)]="nuevaEspecialidad">
+              <option value="Atención Primaria">Atención Primaria</option>
+              <option value="Odontología">Odontología</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="box-prest">Box clínico asignado</label>
+            <input
+              id="box-prest"
+              name="box"
+              type="text"
+              placeholder="Ej. Box 105 / Box Dental 203"
+              [(ngModel)]="nuevoBox"
+              required
+            />
+          </div>
+
+          <div class="fila-doble">
+            <div class="campo">
+              <label for="cupos-prest">Cupos iniciales</label>
+              <input id="cupos-prest" name="cupos" type="number" min="1" [(ngModel)]="nuevosCupos" />
+            </div>
+
+            <div class="campo">
+              <label for="precio-prest">Valor ($ CLP)</label>
+              <input id="precio-prest" name="precio" type="number" min="0" step="1000" [(ngModel)]="nuevoPrecio" />
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primario">+ Agregar al Catálogo</button>
+        </form>
+      </section>
+    }
+
+    <section class="tarjeta-panel">
+      <div class="barra-lista">
+        <h2>Prestaciones y Disponibilidad de Boxes</h2>
+        <select class="filtro-select" [(ngModel)]="filtroEspecialidad" aria-label="Filtrar especialidad">
+          <option value="TODAS">Todas las especialidades</option>
+          <option value="Atención Primaria">Atención Primaria</option>
+          <option value="Odontología">Odontología</option>
+        </select>
+      </div>
+
+      <div class="tabla-responsive">
+        <table class="tabla-catalogo">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Prestación</th>
+              <th>Especialidad</th>
+              <th>Box Asignado</th>
+              <th>Cupos Disponibles</th>
+              <th>Arancel</th>
+              @if (rolActual === 'Admin') {
+                <th>Acciones</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of prestacionesFiltradas; track item.id) {
+              <tr>
+                <td class="col-id">{{ item.id }}</td>
+                <td><strong>{{ item.nombre }}</strong></td>
+                <td>{{ item.especialidad }}</td>
+                <td>
+                  @if (editandoId === item.id) {
+                    <input type="text" class="input-inline" [(ngModel)]="editBox" />
+                  } @else {
+                    <span class="badge-box">{{ item.box }}</span>
+                  }
+                </td>
+                <td>
+                  @if (editandoId === item.id) {
+                    <input type="number" class="input-inline-num" min="0" [(ngModel)]="editCupos" />
+                  } @else {
+                    <span class="badge-cupo" [class.cupo-bajo]="item.cuposDisponibles <= 3">
+                      {{ item.cuposDisponibles }} cupos
+                    </span>
+                  }
+                </td>
+                <td>
+                  @if (editandoId === item.id) {
+                    <input type="number" class="input-inline-num" min="0" step="1000" [(ngModel)]="editPrecio" />
+                  } @else {
+                    <strong>${{ item.precio.toLocaleString('es-CL') }}</strong>
+                  }
+                </td>
+                @if (rolActual === 'Admin') {
+                  <td class="col-acciones">
+                    @if (editandoId === item.id) {
+                      <button type="button" class="btn-guardar" (click)="guardarEdicion(item.id)">Guardar</button>
+                      <button type="button" class="btn-cancelar" (click)="cancelarEdicion()">Cancelar</button>
+                    } @else {
+                      <button type="button" class="btn-editar" (click)="iniciarEdicion(item)">Editar</button>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>

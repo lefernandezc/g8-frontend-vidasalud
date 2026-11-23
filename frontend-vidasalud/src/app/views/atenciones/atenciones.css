@@ -1,0 +1,354 @@
+.atenciones-wrapper {
+  padding: 24px 32px;
+  max-width: 1360px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.encabezado-modulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.encabezado-modulo h1 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  color: #0f294a;
+}
+
+.subtitulo {
+  margin: 0;
+  font-size: 14px;
+  color: #334155;
+}
+
+.chip-rol-activo {
+  background-color: #0f294a;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.alerta {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 18px;
+}
+
+.alerta-exito {
+  background-color: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.alerta-error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.grid-atenciones {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.tarjeta-panel {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 4px 16px rgba(15, 41, 74, 0.08);
+}
+
+.tarjeta-panel h2 {
+  margin: 0 0 6px;
+  font-size: 18px;
+  color: #0f294a;
+}
+
+.descripcion-tarjeta {
+  margin: 0 0 18px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.formulario-cita {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.campo label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.campo input,
+.campo select,
+.filtro-estado {
+  padding: 9px 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #0f172a;
+  background-color: #f8fafc;
+}
+
+.campo input:focus,
+.campo select:focus {
+  outline: none;
+  border-color: #2563eb;
+  background-color: #ffffff;
+}
+
+.fila-doble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-primario {
+  margin-top: 4px;
+  padding: 11px;
+  border: none;
+  border-radius: 8px;
+  background-color: #2563eb;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-primario:hover {
+  background-color: #1d4ed8;
+}
+
+.barra-lista {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.tabla-responsive {
+  overflow-x: auto;
+}
+
+.tabla-atenciones {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.tabla-atenciones th {
+  text-align: left;
+  padding: 10px 12px;
+  background-color: #f1f5f9;
+  color: #334155;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tabla-atenciones td {
+  padding: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: middle;
+}
+
+.col-id {
+  font-weight: 700;
+  color: #0f294a;
+  white-space: nowrap;
+}
+
+.detalle-secundario {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.detalle-paciente {
+  font-size: 11px;
+  color: #2563eb;
+  margin-top: 2px;
+}
+
+.badge-estado {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.badge-estado[data-estado='SOLICITADA'] {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.badge-estado[data-estado='CONFIRMADA'] {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge-estado[data-estado='EN_ESPERA'] {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.badge-estado[data-estado='EN_ATENCIÓN'] {
+  background-color: #d1fae5;
+  color: #047857;
+}
+
+.badge-estado[data-estado='CERRADA'] {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.badge-estado[data-estado='CANCELADA'] {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.col-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.btn-accion {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-confirmar {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.btn-espera {
+  background-color: #4f46e5;
+  color: #ffffff;
+}
+
+.btn-atender {
+  background-color: #059669;
+  color: #ffffff;
+}
+
+.btn-cerrar {
+  background-color: #475569;
+  color: #ffffff;
+}
+
+.btn-cancelar {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.sin-acciones {
+  color: #94a3b8;
+}
+
+.estado-vacio {
+  padding: 32px;
+  text-align: center;
+  color: #64748b;
+  background-color: #f8fafc;
+  border-radius: 8px;
+}
+
+@media (max-width: 960px) {
+  .grid-atenciones {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ticket-admision-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  background-color: #eff6ff;
+  border: 1px solid #93c5fd;
+  border-left: 5px solid #2563eb;
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 18px;
+}
+
+.ticket-header-badge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.ticket-codigo {
+  background-color: #0f294a;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+.ticket-cola {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+}
+
+.ticket-hora {
+  font-size: 12px;
+  color: #475569;
+}
+
+.ticket-texto {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.ticket-meta {
+  font-size: 12px;
+  color: #334155;
+}
+
+.btn-cerrar-ticket {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+}

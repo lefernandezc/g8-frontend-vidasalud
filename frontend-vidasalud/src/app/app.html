@@ -1,19 +1,101 @@
-  <header>
-    <nav>
-      <ul>
-        <li><a [routerLink]="['atenciones']">Atenciones</a></li>
-        <li><a [routerLink]="['dashboard']">Dashboard</a></li>
-        <li><a [routerLink]="['reporteria']">Reporteria</a></li>
-        <li><a [routerLink]="['auditoria']">Auditoria</a></li>
-        <li><a [routerLink]="['catalogo-prestaciones']">Catalogo de Prestacione</a></li>
-      </ul>
+@if (!esLogin) {
+  <header class="navbar">
+    <nav class="nav-links">
+      @if (puedeVerAtenciones) {
+        <a routerLink="/atenciones" routerLinkActive="activo">Atenciones</a>
+      }
+      <a routerLink="/dashboard" routerLinkActive="activo">Dashboard</a>
+      @if (puedeVerReporteria) {
+        <a routerLink="/reporteria" routerLinkActive="activo">Reporteria</a>
+      }
+      @if (puedeVerAuditoria) {
+        <a routerLink="/auditoria" routerLinkActive="activo">Auditoria</a>
+      }
+      @if (puedeVerCatalogo) {
+        <a routerLink="/catalogo-prestaciones" routerLinkActive="activo">Catalogo de Prestaciones</a>
+      }
     </nav>
+
+    <div class="usuario-contenedor">
+      <button type="button" class="usuario-pill" (click)="toggleMenuUsuario()">
+        <span class="avatar-circulo">{{ inicialUsuario }}</span>
+        <span class="usuario-correo">{{ correoUsuario }}</span>
+        <span class="flecha">▾</span>
+      </button>
+
+      @if (menuUsuarioAbierto) {
+        <div class="dropdown-usuario">
+          <div class="dropdown-header">
+            <strong>{{ nombreUsuario }}</strong>
+            <span>{{ correoUsuario }}</span>
+          </div>
+
+          <hr class="divisor" />
+
+          <div class="fila-rol">
+            <span>Rol asignado:</span>
+            <span class="badge-rol">{{ rolUsuario }}</span>
+          </div>
+
+          @if (!mostrandoCambioRol) {
+            <button type="button" class="btn-cambiar-rol" (click)="abrirCambioRol()">
+              Cambiar rol
+            </button>
+          } @else {
+            <div class="panel-cambio-rol">
+              <label for="select-rol">Selecciona rol:</label>
+              <select
+                id="select-rol"
+                class="input-rol"
+                [value]="rolSeleccionado"
+                (change)="seleccionarRol($any($event.target).value)"
+              >
+                @for (rol of rolesDisponibles; track rol) {
+                  <option [value]="rol">{{ rol }}</option>
+                }
+              </select>
+
+              <label for="input-clave-rol">Contraseña del rol:</label>
+              <input
+                id="input-clave-rol"
+                type="password"
+                class="input-rol"
+                [placeholder]="rolSeleccionado.toLowerCase() + '123'"
+                [value]="claveRol"
+                (input)="actualizarClave($any($event.target).value)"
+                (keyup.enter)="confirmarCambioRol()"
+              />
+
+              @if (errorClaveRol) {
+                <p class="error-clave">{{ errorClaveRol }}</p>
+              }
+
+              <div class="acciones-cambio-rol">
+                <button type="button" class="btn-confirmar-rol" (click)="confirmarCambioRol()">
+                  Confirmar
+                </button>
+                <button type="button" class="btn-cancelar-rol" (click)="cancelarCambioRol()">
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          }
+
+          <button type="button" class="btn-cerrar-sesion" (click)="cerrarSesion()">
+            Cerrar sesión
+          </button>
+        </div>
+      }
+    </div>
   </header>
+}
 
-  <main>
-    <router-outlet />
-  </main>
+<main class="contenido-principal">
+  <router-outlet />
+</main>
 
-  <footer>
-    <p>&copy; 2026 Vida Salud - Desarrollo Cloud Native</p>
+@if (!esLogin) {
+  <footer class="footer">
+    <span class="footer-badge">© 2026 Vida Salud - Desarrollo Cloud Native</span>
   </footer>
+}

@@ -1,3 +1,143 @@
-<p>reporteria works!</p>
-<p><br>Atenciones por hora, tiempo de espera, prestaciones más
-demandadas.</p>
+<div class="reporteria-wrapper">
+  <div class="encabezado-modulo">
+    <div>
+      <h1>Reportería Operativa y KPIs</h1>
+      <p class="subtitulo">
+        Consolidado en tiempo real de atenciones, ocupación de boxes y proyección de aranceles en la red VidaSalud.
+      </p>
+    </div>
+
+    <div class="controles-header">
+      <select class="filtro-centro" [(ngModel)]="centroFiltro" aria-label="Filtrar por centro de salud">
+        <option value="TODOS">Todos los centros de salud</option>
+        @for (centro of centrosDisponibles; track centro) {
+          <option [value]="centro">{{ centro }}</option>
+        }
+      </select>
+
+      <button type="button" class="btn-exportar" (click)="exportarCSV()">
+        Exportar CSV
+      </button>
+
+      <span class="chip-rol-activo">Vista: {{ rolActual }}</span>
+    </div>
+  </div>
+
+  @if (mensajeExportacion) {
+    <div class="alerta-exito">{{ mensajeExportacion }}</div>
+  }
+
+  <!-- Fila superior: 4 Tarjetas KPI -->
+  <div class="grid-kpis">
+    <div class="kpi-card">
+      <span class="kpi-titulo">Atenciones Registradas</span>
+      <div class="kpi-valor">{{ totalAtenciones }}</div>
+      <span class="kpi-subtexto">{{ atencionesActivas }} en flujo activo</span>
+    </div>
+
+    <div class="kpi-card borde-azul">
+      <span class="kpi-titulo">Tasa de Efectividad</span>
+      <div class="kpi-valor">{{ tasaEfectividad }}%</div>
+      <span class="kpi-subtexto">Citas vigentes / no canceladas</span>
+    </div>
+
+    <div class="kpi-card borde-verde">
+      <span class="kpi-titulo">Ingresos Proyectados</span>
+      <div class="kpi-valor">${{ recaudacionTotal.toLocaleString('es-CL') }}</div>
+      <span class="kpi-subtexto">Según aranceles vigentes</span>
+    </div>
+
+    <div class="kpi-card borde-morado">
+      <span class="kpi-titulo">Cupos Disponibles Red</span>
+      <div class="kpi-valor">{{ cuposTotalesRed }}</div>
+      <span class="kpi-subtexto">En {{ prestaciones.length }} prestaciones activas</span>
+    </div>
+  </div>
+
+  <!-- Fila intermedia: Distribución por estado y demanda por centro -->
+  <div class="grid-graficos">
+    <section class="tarjeta-panel">
+      <h2>Distribución por Estado de Atención</h2>
+      <p class="descripcion-tarjeta">Proporción de solicitudes según su etapa en el flujo clínico.</p>
+
+      <div class="lista-barras">
+        @for (item of distribucionEstados; track item.estado) {
+          <div class="fila-barra">
+            <div class="barra-etiquetas">
+              <span class="estado-nombre">{{ item.estado }}</span>
+              <span class="estado-cifra">{{ item.cantidad }} ({{ item.porcentaje }}%)</span>
+            </div>
+            <div class="barra-fondo">
+              <div
+                class="barra-relleno"
+                [class]="item.claseColor"
+                [style.width.%]="item.porcentaje"
+              ></div>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <section class="tarjeta-panel">
+      <h2>Demanda por Centro de Salud</h2>
+      <p class="descripcion-tarjeta">Participación global de atenciones registradas por establecimiento.</p>
+
+      <div class="lista-barras">
+        @for (c of actividadPorCentro; track c.centro) {
+          <div class="fila-barra">
+            <div class="barra-etiquetas">
+              <span class="centro-nombre">{{ c.centro }}</span>
+              <span class="estado-cifra">{{ c.cantidad }} citas ({{ c.porcentaje }}%)</span>
+            </div>
+            <div class="barra-fondo">
+              <div
+                class="barra-relleno barra-azul"
+                [style.width.%]="c.porcentaje"
+              ></div>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+
+  <!-- Fila inferior: Tabla consolidada por prestación -->
+  <section class="tarjeta-panel">
+    <h2>Rendimiento y Recaudación por Prestación</h2>
+    <p class="descripcion-tarjeta">Detalle de atenciones efectivas, cupos remanentes en box e ingresos estimados.</p>
+
+    <div class="tabla-responsive">
+      <table class="tabla-reporte">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Prestación</th>
+            <th>Especialidad</th>
+            <th>Box</th>
+            <th>Atenciones Efectivas</th>
+            <th>Cupos Disponibles</th>
+            <th>Recaudación Estimada</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rendimientoPrestaciones; track row.id) {
+            <tr>
+              <td class="col-id">{{ row.id }}</td>
+              <td><strong>{{ row.nombre }}</strong></td>
+              <td>{{ row.especialidad }}</td>
+              <td><span class="badge-box">{{ row.box }}</span></td>
+              <td><strong>{{ row.atencionesCount }}</strong></td>
+              <td>
+                <span class="badge-cupo" [class.cupo-bajo]="row.cuposDisponibles <= 3">
+                  {{ row.cuposDisponibles }} cupos
+                </span>
+              </td>
+              <td class="col-monto">${{ row.recaudacionEstimada.toLocaleString('es-CL') }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

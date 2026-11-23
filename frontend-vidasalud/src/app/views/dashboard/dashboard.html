@@ -1,4 +1,166 @@
-<p>dashboard works!</p>
-<p><br>Admin: KPIs de atenciones.
-   <br>Recepcionista: sala de espera y pendientes.
-   <br>Paciente: próximas atenciones y estado.</p>
+<div class="dashboard-contenedor">
+  <!-- Mitad izquierda: Panel dinámico según rol -->
+  <div class="columna-izquierda">
+    <div class="cabecera-bienvenida">
+      <span class="etiqueta-rol">Perfil: {{ rolActual }}</span>
+      <h2>Bienvenido, {{ nombreUsuario }}</h2>
+      <p class="texto-guia">
+        @if (rolActual === 'Paciente') {
+          Revisa el estado de tus próximas atenciones médicas y solicita nuevas horas en red.
+        } @else if (rolActual === 'Recepcionista') {
+          Control de sala de espera, confirmaciones pendientes y llamado a box.
+        } @else if (rolActual === 'Admin') {
+          Resumen operativo de atenciones y disponibilidad de cupos en la red VidaSalud.
+        } @else {
+          Supervisión de eventos clínicos-administrativos y trazabilidad del sistema.
+        }
+      </p>
+    </div>
+
+    <!-- VISTA PACIENTE: Próximas atenciones y estado -->
+    @if (rolActual === 'Paciente') {
+      <div class="resumen-kpi-fila">
+        <div class="kpi-mini">
+          <span class="kpi-numero">{{ totalSolicitadas }}</span>
+          <span class="kpi-etiqueta">Por confirmar</span>
+        </div>
+        <div class="kpi-mini kpi-azul">
+          <span class="kpi-numero">{{ totalConfirmadas }}</span>
+          <span class="kpi-etiqueta">Confirmadas</span>
+        </div>
+        <div class="kpi-mini kpi-verde">
+          <span class="kpi-numero">{{ totalEnCurso }}</span>
+          <span class="kpi-etiqueta">En sala / box</span>
+        </div>
+      </div>
+
+      <div class="tarjeta-citas">
+        <div class="tarjeta-citas-header">
+          <h3>Próximas Atenciones y Estado</h3>
+          <span class="contador-pill">{{ proximasAtenciones.length }} activas</span>
+        </div>
+
+        @if (proximasAtenciones.length === 0) {
+          <div class="sin-citas">
+            No tienes atenciones pendientes programadas en este momento.
+          </div>
+        } @else {
+          <div class="lista-citas-scroll">
+            @for (cita of proximasAtenciones; track cita.id) {
+              <div class="item-cita">
+                <div class="item-cita-info">
+                  <div class="item-cita-titulo">
+                    <span class="codigo-cita">{{ cita.id }}</span>
+                    <strong>{{ cita.prestacionNombre }}</strong>
+                  </div>
+                  <div class="item-cita-detalle">
+                    {{ cita.centroSalud }} · <strong>{{ cita.box }}</strong>
+                  </div>
+                  <div class="item-cita-fecha">
+                    Cita: {{ cita.fecha }} a las {{ cita.hora }} hrs
+                  </div>
+                </div>
+
+                <span class="badge-estado" [attr.data-estado]="cita.estado">
+                  {{ cita.estado }}
+                </span>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="acciones-dashboard">
+          <a routerLink="/atenciones" class="btn-solicitar-ahora">
+            + Solicitar Nueva Atención
+          </a>
+          <a routerLink="/atenciones" class="btn-ver-historial">
+            Ver historial completo
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- VISTA RECEPCIONISTA: Sala de espera y pendientes -->
+    @if (rolActual === 'Recepcionista') {
+      <div class="tarjeta-citas">
+        <div class="tarjeta-citas-header">
+          <h3>Sala de Espera y Pendientes</h3>
+          <span class="contador-pill">{{ pendientesRecepcion.length }} en flujo</span>
+        </div>
+
+        <div class="lista-citas-scroll">
+          @for (cita of pendientesRecepcion; track cita.id) {
+            <div class="item-cita">
+              <div class="item-cita-info">
+                <div class="item-cita-titulo">
+                  <span class="codigo-cita">{{ cita.id }}</span>
+                  <strong>{{ cita.prestacionNombre }}</strong>
+                </div>
+                <div class="item-cita-detalle">
+                  Paciente: {{ cita.pacienteCorreo }} · {{ cita.box }}
+                </div>
+                <div class="item-cita-fecha">{{ cita.fecha }} · {{ cita.hora }} hrs</div>
+              </div>
+              <span class="badge-estado" [attr.data-estado]="cita.estado">{{ cita.estado }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="acciones-dashboard">
+          <a routerLink="/atenciones" class="btn-solicitar-ahora">Gestionar Sala y Boxes</a>
+        </div>
+      </div>
+    }
+
+    <!-- VISTA ADMIN: KPIs globales -->
+    @if (rolActual === 'Admin') {
+      <div class="resumen-kpi-fila">
+        <div class="kpi-mini">
+          <span class="kpi-numero">{{ todasLasAtenciones.length }}</span>
+          <span class="kpi-etiqueta">Atenciones totales</span>
+        </div>
+        <div class="kpi-mini kpi-azul">
+          <span class="kpi-numero">{{ cuposTotalesDisponibles }}</span>
+          <span class="kpi-etiqueta">Cupos disponibles</span>
+        </div>
+        <div class="kpi-mini kpi-verde">
+          <span class="kpi-numero">{{ pendientesRecepcion.length }}</span>
+          <span class="kpi-etiqueta">En proceso activo</span>
+        </div>
+      </div>
+
+      <div class="tarjeta-citas">
+        <h3>Accesos de Administración</h3>
+        <p class="texto-guia">
+          Gestiona el catálogo de prestaciones, supervisa las atenciones de los 20 centros o revisa KPIs.
+        </p>
+        <div class="acciones-dashboard">
+          <a routerLink="/catalogo-prestaciones" class="btn-solicitar-ahora">Ir a Catálogo</a>
+          <a routerLink="/reporteria" class="btn-ver-historial">Ver Reportería</a>
+        </div>
+      </div>
+    }
+
+    <!-- VISTA AUDITOR: Solo lectura -->
+    @if (rolActual === 'Auditor') {
+      <div class="tarjeta-citas">
+        <h3>Panel de Auditoría (Solo Lectura)</h3>
+        <p class="texto-guia">
+          Consulta el timeline cronológico de solicitudes, confirmaciones y cierres registrados en la red.
+        </p>
+        <div class="acciones-dashboard">
+          <a routerLink="/auditoria" class="btn-solicitar-ahora">Abrir Timeline de Auditoría</a>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Mitad derecha: foto de sala médica -->
+  <div class="columna-derecha">
+    <img
+      src="grupodepersonassalamedica.jpg"
+      alt="Sala de espera médica VidaSalud"
+      class="imagen-sala"
+    />
+  </div>
+</div>

@@ -1,3 +1,240 @@
-<p>atenciones works!</p>
-<p><br>Listar, crear (paciente o recepcionista)
-   <br>cambiar estado (recepcionista/admin).</p>
+<div class="atenciones-wrapper">
+  <div class="encabezado-modulo">
+    <div>
+      <h1>
+        @if (rolActual === 'Paciente') {
+          Mis Atenciones Médicas
+        } @else {
+          Gestión de Atenciones en Red
+        }
+      </h1>
+      <p class="subtitulo">
+        @if (rolActual === 'Paciente') {
+          Solicita nuevas horas en nuestros centros de salud y revisa el estado de tus citas en tiempo real.
+        } @else {
+          Administra solicitudes, confirma cupos de boxes y actualiza el flujo de atención de pacientes.
+        }
+      </p>
+    </div>
+    <span class="chip-rol-activo">Vista: {{ rolActual }}</span>
+  </div>
+
+  @if (mensajeExito) {
+    <div class="alerta alerta-exito">{{ mensajeExito }}</div>
+  }
+  @if (mensajeError) {
+    <div class="alerta alerta-error">{{ mensajeError }}</div>
+  }
+
+  @if (ultimoTicket) {
+    <div class="ticket-admision-card">
+      <div class="ticket-info">
+        <div class="ticket-header-badge">
+          <span class="ticket-codigo">{{ ultimoTicket.codigoTicket }}</span>
+          <span class="ticket-cola">Cola RabbitMQ: {{ ultimoTicket.colaDestino }}</span>
+          <span class="ticket-hora">{{ ultimoTicket.emitidoEn }}</span>
+        </div>
+        <p class="ticket-texto">{{ ultimoTicket.mensajeNotificacion }}</p>
+        <div class="ticket-meta">
+          Atención: <strong>{{ ultimoTicket.atencionId }}</strong> · {{ ultimoTicket.prestacionNombre }} · <strong>{{ ultimoTicket.box }}</strong>
+        </div>
+      </div>
+      <button type="button" class="btn-cerrar-ticket" (click)="cerrarTicket()">✕</button>
+    </div>
+  }
+
+  <div class="grid-atenciones">
+    <!-- Tarjeta izquierda: Formulario de solicitud -->
+    <section class="tarjeta-panel">
+      <h2>Solicitar Nueva Atención</h2>
+      <p class="descripcion-tarjeta">La solicitud ingresará en estado <strong>SOLICITADA</strong> a la espera de confirmación.</p>
+
+      <form (ngSubmit)="solicitarAtencion()" class="formulario-cita">
+        <div class="campo">
+          <label for="centro">Centro de Salud / Clínica Dental</label>
+          <select id="centro" name="centro" [(ngModel)]="centroSeleccionado">
+            @for (centro of centrosSalud; track centro) {
+              <option [value]="centro">{{ centro }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="prestacion">Prestación Médica</label>
+          <select id="prestacion" name="prestacion" [(ngModel)]="prestacionSeleccionadaId">
+            @for (item of prestaciones; track item.id) {
+              <option [value]="item.id">
+                {{ item.nombre }} ({{ item.box }} - {{ item.cuposDisponibles }} cupos)
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="fila-doble">
+          <div class="campo">
+            <label for="fecha">Fecha deseada</label>
+            <input id="fecha" name="fecha" type="date" [(ngModel)]="fechaSeleccionada" required />
+          </div>
+
+          <div class="campo">
+            <label for="hora">Bloque horario</label>
+            <select id="hora" name="hora" [(ngModel)]="horaSeleccionada">
+              <option value="09:00">09:00 hrs</option>
+              <option value="10:00">10:00 hrs</option>
+              <option value="11:30">11:30 hrs</option>
+              <option value="15:00">15:00 hrs</option>
+              <option value="16:30">16:30 hrs</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="motivo">Motivo de consulta (opcional)</label>
+          <input
+            id="motivo"
+            name="motivo"
+            type="text"
+            placeholder="Ej. Control preventivo, dolor molar..."
+            [(ngModel)]="motivoConsulta"
+          />
+        </div>
+
+        <button type="submit" class="btn-primario">Solicitar Atención</button>
+      </form>
+    </section>
+
+    <!-- Tarjeta derecha: Listado y seguimiento -->
+    <section class="tarjeta-panel">
+      <div class="barra-lista">
+        <h2>
+          @if (rolActual === 'Paciente') {
+            Historial y Próximas Citas
+          } @else {
+            Bandeja de Atenciones
+          }
+        </h2>
+
+        <select class="filtro-estado" [(ngModel)]="filtroEstado" aria-label="Filtrar por estado">
+          <option value="TODOS">Todos los estados</option>
+          <option value="SOLICITADA">SOLICITADA</option>
+          <option value="CONFIRMADA">CONFIRMADA</option>
+          <option value="EN_ESPERA">EN_ESPERA</option>
+          <option value="EN_ATENCIÓN">EN_ATENCIÓN</option>
+          <option value="CERRADA">CERRADA</option>
+          <option value="CANCELADA">CANCELADA</option>
+        </select>
+      </div>
+
+      @if (atencionesFiltradas.length === 0) {
+        <div class="estado-vacio">
+          No hay atenciones registradas con el filtro seleccionado.
+        </div>
+      } @else {
+        <div class="tabla-responsive">
+          <table class="tabla-atenciones">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Prestación y Centro</th>
+                <th>Fecha / Hora</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (cita of atencionesFiltradas; track cita.id) {
+                <tr>
+                  <td>
+                    <div class="col-id">{{ cita.id }}</div>
+                    <div class="detalle-secundario">Subida: {{ cita.creadaEn }}</div>
+                  </td>
+                  <td>
+                    <strong>{{ cita.prestacionNombre }}</strong>
+                    <div class="detalle-secundario">{{ cita.centroSalud }} · {{ cita.box }}</div>
+                    @if (rolActual !== 'Paciente') {
+                      <div class="detalle-paciente">Paciente: {{ cita.pacienteCorreo }}</div>
+                    }
+                  </td>
+                  <td>
+                    <div>{{ cita.fecha }}</div>
+                    <div class="detalle-secundario">{{ cita.hora }} hrs</div>
+                  </td>
+                  <td>
+                    <span class="badge-estado" [attr.data-estado]="cita.estado">
+                      {{ cita.estado }}
+                    </span>
+                  </td>
+                  <td class="col-acciones">
+                    <!-- Acciones permitidas al Paciente -->
+                    @if (rolActual === 'Paciente') {
+                      @if (cita.estado === 'SOLICITADA' || cita.estado === 'CONFIRMADA') {
+                        <button
+                          type="button"
+                          class="btn-accion btn-cancelar"
+                          (click)="actualizarEstado(cita, 'CANCELADA')"
+                        >
+                          Cancelar cita
+                        </button>
+                      } @else {
+                        <span class="sin-acciones">—</span>
+                      }
+                    }
+
+                    <!-- Acciones permitidas a Recepcionista y Admin -->
+                    @if (rolActual === 'Recepcionista' || rolActual === 'Admin') {
+                      @if (cita.estado === 'SOLICITADA') {
+                        <button
+                          type="button"
+                          class="btn-accion btn-confirmar"
+                          (click)="actualizarEstado(cita, 'CONFIRMADA')"
+                        >
+                          Confirmar
+                        </button>
+                      }
+                      @if (cita.estado === 'CONFIRMADA') {
+                        <button
+                          type="button"
+                          class="btn-accion btn-espera"
+                          (click)="actualizarEstado(cita, 'EN_ESPERA')"
+                        >
+                          En Espera
+                        </button>
+                      }
+                      @if (cita.estado === 'EN_ESPERA' || cita.estado === 'CONFIRMADA') {
+                        <button
+                          type="button"
+                          class="btn-accion btn-atender"
+                          (click)="actualizarEstado(cita, 'EN_ATENCIÓN')"
+                        >
+                          Llamar a Box
+                        </button>
+                      }
+                      @if (cita.estado === 'EN_ATENCIÓN') {
+                        <button
+                          type="button"
+                          class="btn-accion btn-cerrar"
+                          (click)="actualizarEstado(cita, 'CERRADA')"
+                        >
+                          Cerrar
+                        </button>
+                      }
+                      @if (cita.estado === 'SOLICITADA' || cita.estado === 'CONFIRMADA' || cita.estado === 'EN_ESPERA') {
+                        <button
+                          type="button"
+                          class="btn-accion btn-cancelar"
+                          (click)="actualizarEstado(cita, 'CANCELADA')"
+                        >
+                          Cancelar
+                        </button>
+                      }
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </div>
+</div>
